@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp( MyApp() );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -15,8 +15,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: Scaffold(
-        appBar: AppBar(
-        ),
+        appBar: AppBar(),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -54,7 +53,8 @@ class MyApp extends StatelessWidget {
                     print('Login');
                   },
                   style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all<Color>(Colors.blue),
+                    backgroundColor:
+                        WidgetStateProperty.all<Color>(Colors.blue),
                     minimumSize: WidgetStateProperty.all<Size>(
                       Size(double.infinity, 48),
                     ),
@@ -90,23 +90,26 @@ class MyApp extends StatelessWidget {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'Don\'t have an account?',
+                    "Don't have an account?",
                     style: TextStyle(
                       fontSize: 16,
+                      color: Colors.black,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      print('Sign up');
-                    },
-                    child: Text(
-                      'Sign up',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 0.0),
+                    child: TextButton(
+                      onPressed: () {
+                        print('Sign up');
+                      },
+                      child: Text(
+                        'Sign up',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.blue,
+                        ),
                       ),
                     ),
                   ),
@@ -114,7 +117,7 @@ class MyApp extends StatelessWidget {
               ),
             ],
           ),
-        ),  
+        ),
       ),
     );
   }
