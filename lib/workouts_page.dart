@@ -1,28 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class DayPage extends StatelessWidget {
+class DayPage extends StatefulWidget {
   final String day;
 
   DayPage({required this.day});
 
   @override
+  State<DayPage> createState() => _DayPageState();
+}
+
+class _DayPageState extends State<DayPage> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(day),
+        title: Text(widget.day),
       ),
       body: Center(
-        child: Column(
-
-        ),
+        child: 
+            ListView.builder(
+              itemCount: 20,
+              scrollDirection: Axis.vertical,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Stack(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          height: 200,
+                          child: ListTile(
+                          title: Text('Exercise $index'),
+                          subtitle: Text('Details about exercise $index'),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(color: Colors.grey, width: 1),
+                          ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              print('Delete exercise $index');
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
         print('Add to workout');
       },
-      child: Icon(Icons.add),
       backgroundColor: Colors.blue,
+      child: Icon(Icons.add),
       ),
     );
   }
