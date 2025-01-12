@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'add_exercise_page.dart';
 
 class DayPage extends StatefulWidget {
   final String day;
@@ -20,7 +21,7 @@ class _DayPageState extends State<DayPage> {
       body: Center(
         child: 
             ListView.builder(
-              itemCount: 20,
+              itemCount: 0,
               scrollDirection: Axis.vertical,
               itemBuilder: (context, index) {
                 return Padding(
@@ -60,7 +61,12 @@ class _DayPageState extends State<DayPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-        print('Add to workout');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AddExercisePage(day: widget.day),
+          ),
+        );
       },
       backgroundColor: Colors.blue,
       child: Icon(Icons.add),
