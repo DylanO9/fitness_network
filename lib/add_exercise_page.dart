@@ -64,17 +64,17 @@ class _AddExercisePageState extends State<AddExercisePage> {
     }
   }
 
-  Future<void> insertExercise() async {
-    final response = await Supabase.instance.client
-        .from('workouts')
-        .insert([
-          {
-            'day': widget.day,
-            'exercise': 'exercise',
-          }
-        ])
-        .execute();
-  }
+  // Future<void> insertExercise() async {
+  //   final response = await Supabase.instance.client
+  //       .from('workouts')
+  //       .insert([
+  //         {
+  //           'day': widget.day,
+  //           'exercise': 'exercise',
+  //         }
+  //       ])
+  //       .execute();
+  // }
 
   @override
   Widget build(BuildContext context) {
