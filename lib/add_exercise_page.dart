@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'exercise_list_page.dart';
 
 class AddExercisePage extends StatefulWidget {
@@ -63,6 +64,18 @@ class _AddExercisePageState extends State<AddExercisePage> {
     }
   }
 
+  Future<void> insertExercise() async {
+    final response = await Supabase.instance.client
+        .from('workouts')
+        .insert([
+          {
+            'day': widget.day,
+            'exercise': 'exercise',
+          }
+        ])
+        .execute();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,7 +86,7 @@ class _AddExercisePageState extends State<AddExercisePage> {
         itemCount: bodyParts.length,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 0.0),
             child: SizedBox(
               width: double.infinity,
               height: 150,

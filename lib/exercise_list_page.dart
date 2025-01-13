@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class ExerciseListPage extends StatelessWidget {
+class ExerciseListPage extends StatefulWidget {
   final String bodyPart;
   final List<String> exercises;
 
@@ -11,20 +11,54 @@ class ExerciseListPage extends StatelessWidget {
   });
 
   @override
+  _ExerciseListPageState createState() => _ExerciseListPageState();
+}
+
+class _ExerciseListPageState extends State<ExerciseListPage> {
+  late List<bool> _checked;
+  late List<String> _selectedExercises;
+
+  @override
+  void initState() {
+    super.initState();
+    _checked = List<bool>.filled(widget.exercises.length, false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Exercises for $bodyPart"),
+        title: Text("Exercises for ${widget.bodyPart}"),
       ),
-      body: exercises.isEmpty
-          ? const Center(
-              child: Text('No exercises available'),
-            )
+      body: widget.exercises.isEmpty
+          ? Text('No exercises available')
           : ListView.builder(
-              itemCount: exercises.length,
+              padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+              itemCount: widget.exercises.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(exercises[index]),
+                  title: Text(
+                    widget.exercises[index],
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  trailing: Checkbox(
+                    value: _checked[index],
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _checked[index] = value!;
+                        if (_checked[index]) {
+                          _selectedExercises.add(widget.exercises[index]);
+                        } else {
+                          _selectedExercises.remove(widget.exercises[index]);
+                        }
+                      });
+                    },
+                    activeColor: Colors.blue,
+                  ),
                 );
               },
             ),
