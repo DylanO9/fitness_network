@@ -24,9 +24,9 @@ class _DayPageState extends State<DayPage> {
   Future<List<String>> _fetchExercises() async {
     try {
       final response = await Supabase.instance.client
-          .from('Exercises')
+          .from('Split_Mapping')
           .select()
-          .eq('day', widget.day);
+          .eq('user_id', Supabase.instance.client.auth.currentUser!.id);
       print('Response: $response');
       return response.map((item) => item['exercise_name'] as String).toList();
     } catch (e) {
