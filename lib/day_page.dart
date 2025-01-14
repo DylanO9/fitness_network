@@ -82,8 +82,21 @@ class _DayPageState extends State<DayPage> {
                           bottom: 0,
                           child: IconButton(
                             icon: Icon(Icons.delete),
-                            onPressed: () {
-                              print('Delete exercise $index');
+                            onPressed: () async {
+                              try {
+                                final response = await Supabase.instance.client
+                                    .from('Split_Mapping')
+                                    .delete()
+                                    .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
+                                    .eq('split_id', widget.day_id)
+                                    .eq('exercise_name', exercise);
+                                print('Response: $response');
+                                setState(() {
+                                  _exercises = _fetchExercises();
+                                });
+                              } catch (e) {
+                                print('Error deleting exercise: $e');
+                              }
                             },
                           ),
                         ),
