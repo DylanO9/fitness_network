@@ -115,14 +115,52 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final response = await Supabase.instance.client
-              .from('Split_Days')
-              .insert({'user_id': Supabase.instance.client.auth.currentUser!.id,'split_name': 'Push'});
-          print('Response: $response');
+          // Show dialog to add new split
+          await _showAddSplitDialog();
         },
         backgroundColor: Colors.blue,
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Future<void> _showAddSplitDialog() async {
+    final TextEditingController _controller = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add New Split'),
+          content: TextField(
+            controller: _controller,
+            decoration: const InputDecoration(hintText: 'Enter split name'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () async {
+                final splitName = _controller.text;
+                if (splitName.isNotEmpty) {
+                  await Supabase.instance.client
+                      .from('Split_Days')
+                      .insert({'user_id': Supabase.instance.client.auth.currentUser!.id, 'split_name': splitName});
+                  setState(() {
+                    _splitDays = _fetchSplitDays();
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
