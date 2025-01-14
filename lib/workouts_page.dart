@@ -1,80 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'add_exercise_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-class DayPage extends StatefulWidget {
-  final String day;
-
-  DayPage({required this.day});
-
-  @override
-  State<DayPage> createState() => _DayPageState();
-}
-
-class _DayPageState extends State<DayPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.day),
-      ),
-      body: Center(
-        child: 
-            ListView.builder(
-              itemCount: 0,
-              scrollDirection: Axis.vertical,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Stack(
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          height: 200,
-                          child: ListTile(
-                          title: Text('Exercise $index'),
-                          subtitle: Text('Details about exercise $index'),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(color: Colors.grey, width: 1),
-                          ),
-                          ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              print('Delete exercise $index');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AddExercisePage(day: widget.day),
-          ),
-        );
-      },
-      backgroundColor: Colors.blue,
-      child: Icon(Icons.add),
-      ),
-    );
-  }
-}
+import 'day_page.dart';
 
 class WorkoutsPage extends StatefulWidget {
   @override
@@ -83,7 +10,7 @@ class WorkoutsPage extends StatefulWidget {
 
 class _WorkoutsPageState extends State<WorkoutsPage> {
   DateTime _selectedDay = DateTime.now();
-  late Future<List<String>> _splitDays;
+  late Future<List<Map<String, dynamic>>> _splitDays;
 
   @override
   void initState() {
@@ -91,13 +18,18 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
     _splitDays = _fetchSplitDays(); // Initialize the future here
   }
 
-Future<List<String>> _fetchSplitDays() async {
+  Future<List<Map<String, dynamic>>> _fetchSplitDays() async {
     try {
       final response = await Supabase.instance.client
           .from('Split_Days')
-          .select();
+          .select()
+          .eq('user_id', Supabase.instance.client.auth.currentUser!.id);
       print('Response: $response');
-      return response.map((item) => item['split_name'] as String).toList();
+      final data = response as List<dynamic>;
+      return data.map((item) => {
+        'split_name': item['split_name'],
+        'id': item['id'],
+      }).toList();
     } catch (e) {
       print('Error fetching split days: $e');
       return [];
@@ -123,9 +55,9 @@ Future<List<String>> _fetchSplitDays() async {
               onDaySelected: (selectedDay, focusedDay) => setState(() {
                 _selectedDay = selectedDay;
               }),
-              ),
+            ),
             Expanded(
-              child: FutureBuilder<List<String>>(
+              child: FutureBuilder<List<Map<String, dynamic>>>(
                 future: _splitDays,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -153,7 +85,7 @@ Future<List<String>> _fetchSplitDays() async {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => DayPage(day: day),
+                                builder: (context) => DayPage(day: day['split_name'], day_id: day['id']),
                               ),
                             );
                           },
@@ -165,7 +97,7 @@ Future<List<String>> _fetchSplitDays() async {
                             backgroundColor: Colors.white,
                           ),
                           child: Text(
-                            day,
+                            day['split_name'],
                             style: const TextStyle(
                               fontSize: 18,
                               color: Colors.black,
@@ -185,7 +117,7 @@ Future<List<String>> _fetchSplitDays() async {
         onPressed: () async {
           final response = await Supabase.instance.client
               .from('Split_Days')
-              .insert({'user_id': 1,'split_name': 'Push'});
+              .insert({'user_id': Supabase.instance.client.auth.currentUser!.id,'split_name': 'Push'});
           print('Response: $response');
         },
         backgroundColor: Colors.blue,
