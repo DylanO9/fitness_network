@@ -101,7 +101,7 @@ class _DayPageState extends State<DayPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddExercisePage(day: widget.day),
+              builder: (context) => AddExercisePage(day: widget.day, day_id: widget.day_id,),
             ),
           );
         },

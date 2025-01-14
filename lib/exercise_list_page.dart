@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ExerciseListPage extends StatefulWidget {
   final String bodyPart;
   final List<String> exercises;
+  final int day_id;
 
   const ExerciseListPage({
     super.key,
     required this.bodyPart,
     required this.exercises,
+    required this.day_id,
   });
 
   @override
-  _ExerciseListPageState createState() => _ExerciseListPageState();
+  ExerciseListPageState createState() => ExerciseListPageState();
 }
 
-class _ExerciseListPageState extends State<ExerciseListPage> {
+class ExerciseListPageState extends State<ExerciseListPage> {
   late List<bool> _checked;
   late List<String> _selectedExercises;
 
@@ -22,6 +25,27 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
   void initState() {
     super.initState();
     _checked = List<bool>.filled(widget.exercises.length, false);
+    _selectedExercises = [];
+  }
+
+  void _saveSelectedExercises() async {
+    try {
+      for (String exercise in _selectedExercises) {
+        final response = await Supabase.instance.client
+            .from('Split_Mapping')
+            .upsert({
+              'user_id': Supabase.instance.client.auth.currentUser!.id,
+              'split_id': widget.day_id,
+              'exercise_name': exercise,
+            })
+            .select();
+        print('Response: $response');
+      }
+    } catch (e) {
+      print('Error saving exercises: $e');
+    }
+    Navigator.pop(context, _selectedExercises);
+    print('Selected exercises: $_selectedExercises');
   }
 
   @override
@@ -62,6 +86,11 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
                 );
               },
             ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _saveSelectedExercises,
+        child: Icon(Icons.save),
+        tooltip: 'Save selected exercises',
+      ),
     );
   }
 }

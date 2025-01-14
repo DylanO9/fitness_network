@@ -6,8 +6,9 @@ import 'exercise_list_page.dart';
 
 class AddExercisePage extends StatefulWidget {
   final String day;
+  final int day_id;
 
-  const AddExercisePage({super.key, required this.day});
+  const AddExercisePage({super.key, required this.day, required this.day_id});
 
   @override
   State<AddExercisePage> createState() => _AddExercisePageState();
@@ -53,6 +54,7 @@ class _AddExercisePageState extends State<AddExercisePage> {
             builder: (context) => ExerciseListPage(
               bodyPart: bodyPart,
               exercises: exercises,
+              day_id: widget.day_id,
             ),
           ),
         );
