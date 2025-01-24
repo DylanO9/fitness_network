@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:convert';
 import 'exercise_list_page.dart';
 
 class AddExercisePage extends StatefulWidget {
@@ -11,28 +10,22 @@ class AddExercisePage extends StatefulWidget {
   const AddExercisePage({super.key, required this.day, required this.day_id});
 
   @override
-  State<AddExercisePage> createState() => _AddExercisePageState();
+  _AddExercisePageState createState() => _AddExercisePageState();
 }
 
 class _AddExercisePageState extends State<AddExercisePage> {
-  // List of body parts
+  List<String> _selectedExercises = [];
   final List<String> bodyParts = [
-    "back",
-    "cardio",
-    "chest",
-    "lower arms",
-    "lower legs",
-    "neck",
-    "shoulders",
-    "upper arms",
-    "upper legs",
-    "waist"
+    'chest',
+    'back',
+    'legs',
+    'arms',
+    'shoulders',
+    'abs'
   ];
 
-  // Function to fetch exercises based on body part
-  Future<void> fetchExercises(String bodyPart) async {
-    final url = Uri.parse(
-        'https://exercisedb.p.rapidapi.com/exercises/bodyPart/$bodyPart?limit=10&offset=0');
+  void fetchExercises(String bodyPart) async {
+    final url = Uri.parse('https://exercisedb.p.rapidapi.com/exercises/bodyPart/$bodyPart?limit=10&offset=0');
 
     try {
       final response = await http.get(
@@ -48,7 +41,7 @@ class _AddExercisePageState extends State<AddExercisePage> {
         final exercises = List<String>.from(data.map((exercise) => exercise['name']));
 
         // Navigate to the ExerciseListPage with fetched exercises
-        Navigator.push(
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ExerciseListPage(
@@ -58,6 +51,12 @@ class _AddExercisePageState extends State<AddExercisePage> {
             ),
           ),
         );
+
+        if (result != null) {
+          setState(() {
+            _selectedExercises.addAll(result);
+          });
+        }
       } else {
         print('Failed to fetch exercises. Status code: ${response.statusCode}');
       }
@@ -66,50 +65,44 @@ class _AddExercisePageState extends State<AddExercisePage> {
     }
   }
 
-  // Future<void> insertExercise() async {
-  //   final response = await Supabase.instance.client
-  //       .from('workouts')
-  //       .insert([
-  //         {
-  //           'day': widget.day,
-  //           'exercise': 'exercise',
-  //         }
-  //       ])
-  //       .execute();
-  // }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Add Exercise for ${widget.day}"),
-      ),
-      body: ListView.builder(
-        itemCount: bodyParts.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 150,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero,
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, _selectedExercises);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Add Exercise for ${widget.day}"),
+        ),
+        body: ListView.builder(
+          itemCount: bodyParts.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0.0),
+              child: SizedBox(
+                width: double.infinity,
+                height: 150,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
                   ),
-                ),
-                onPressed: () => fetchExercises(bodyParts[index]),
-                child: Text(
-                  bodyParts[index],
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
+                  onPressed: () => fetchExercises(bodyParts[index]),
+                  child: Text(
+                    bodyParts[index],
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

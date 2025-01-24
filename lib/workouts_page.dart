@@ -73,13 +73,16 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                   }
       
                   final splitDays = snapshot.data!;
-                  return ListView.builder(
+                  return GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 1.5, // Adjusted to make the items smaller
+                    ),
                     itemCount: splitDays.length,
                     itemBuilder: (context, index) {
                       final day = splitDays[index];
                       return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 8.0),
+                        padding: const EdgeInsets.all(4.0), // Reduced padding
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.push(

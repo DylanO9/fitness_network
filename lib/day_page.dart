@@ -36,6 +36,23 @@ class _DayPageState extends State<DayPage> {
     }
   }
 
+  Future<void> _deleteExercise(String exercise) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('Split_Mapping')
+          .delete()
+          .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
+          .eq('split_id', widget.day_id)
+          .eq('exercise_name', exercise);
+      print('Response: $response');
+      setState(() {
+        _exercises = _fetchExercises();
+      });
+    } catch (e) {
+      print('Error deleting exercise: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,46 +78,22 @@ class _DayPageState extends State<DayPage> {
                 final exercise = exercises[index];
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Stack(
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          height: 200,
-                          child: ListTile(
-                            title: Text(exercise),
-                            subtitle: Text('Details about $exercise'),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(color: Colors.grey, width: 1),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: IconButton(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey, width: 1),
+                    ),
+                    child: ListTile(
+                      title: Row(
+                        children: [
+                          Text(exercise),
+                          Spacer(),
+                          IconButton(
                             icon: Icon(Icons.delete),
-                            onPressed: () async {
-                              try {
-                                final response = await Supabase.instance.client
-                                    .from('Split_Mapping')
-                                    .delete()
-                                    .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
-                                    .eq('split_id', widget.day_id)
-                                    .eq('exercise_name', exercise);
-                                print('Response: $response');
-                                setState(() {
-                                  _exercises = _fetchExercises();
-                                });
-                              } catch (e) {
-                                print('Error deleting exercise: $e');
-                              }
-                            },
+                            onPressed: () => _deleteExercise(exercise),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -110,13 +103,19 @@ class _DayPageState extends State<DayPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddExercisePage(day: widget.day, day_id: widget.day_id,),
+              builder: (context) => AddExercisePage(day: widget.day, day_id: widget.day_id),
             ),
           );
+
+          if (result != null) {
+            setState(() {
+              _exercises = _fetchExercises();
+            });
+          }
         },
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),
