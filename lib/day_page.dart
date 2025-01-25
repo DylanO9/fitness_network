@@ -13,7 +13,7 @@ class DayPage extends StatefulWidget {
 }
 
 class _DayPageState extends State<DayPage> {
-  late Future<List<String>> _exercises;
+  late Future<List<Map<String, dynamic>>> _exercises;
 
   @override
   void initState() {
@@ -21,7 +21,7 @@ class _DayPageState extends State<DayPage> {
     _exercises = _fetchExercises();
   }
 
-  Future<List<String>> _fetchExercises() async {
+  Future<List<Map<String, dynamic>>> _fetchExercises() async {
     try {
       final response = await Supabase.instance.client
           .from('Split_Mapping')
@@ -29,7 +29,11 @@ class _DayPageState extends State<DayPage> {
           .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
           .eq('split_id', widget.day_id);
       print('Response: $response');
-      return response.map((item) => item['exercise_name'] as String).toList();
+      return response.map((item) => {
+        'exercise_name': item['exercise_name'] as String,
+        'reps': (item['reps'] ?? 0) as int,
+        'sets': (item['sets'] ?? 0) as int,
+      }).toList();
     } catch (e) {
       print('Error fetching exercises: $e');
       return [];
@@ -53,6 +57,23 @@ class _DayPageState extends State<DayPage> {
     }
   }
 
+  Future<void> _updateExercise(String exercise, int reps, int sets) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('Split_Mapping')
+          .update({'reps': reps, 'sets': sets})
+          .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
+          .eq('split_id', widget.day_id)
+          .eq('exercise_name', exercise);
+      print('Response: $response');
+      setState(() {
+        _exercises = _fetchExercises();
+      });
+    } catch (e) {
+      print('Error updating exercise: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,7 +81,7 @@ class _DayPageState extends State<DayPage> {
         title: Text(widget.day),
       ),
       body: Center(
-        child: FutureBuilder<List<String>>(
+        child: FutureBuilder<List<Map<String, dynamic>>>(
           future: _exercises,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -72,32 +93,62 @@ class _DayPageState extends State<DayPage> {
             }
 
             final exercises = snapshot.data!;
-            return ListView.builder(
-              itemCount: exercises.length,
-              itemBuilder: (context, index) {
-                final exercise = exercises[index];
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey, width: 1),
-                    ),
-                    child: ListTile(
-                      title: Row(
-                        children: [
-                          Text(exercise),
-                          Spacer(),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () => _deleteExercise(exercise),
+            return SingleChildScrollView(
+              child: DataTable(
+                columnSpacing: 10.0,
+                columns: const [
+                  DataColumn(label: Text('Exercise')),
+                  DataColumn(label: Text('Reps')),
+                  DataColumn(label: Text('Sets')),
+                  DataColumn(label: Text('Actions')),
+                ],
+                rows: exercises.map((exercise) {
+                  final TextEditingController repsController = TextEditingController(text: exercise['reps'].toString());
+                  final TextEditingController setsController = TextEditingController(text: exercise['sets'].toString());
+
+                  return DataRow(cells: [
+                    DataCell(Text(exercise['exercise_name'])),
+                    DataCell(
+                      SizedBox(
+                        width: 50,
+                        child: TextFormField(
+                          controller: repsController,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
                           ),
-                        ],
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          onFieldSubmitted: (value) {
+                            _updateExercise(exercise['exercise_name'], int.parse(repsController.text), int.parse(setsController.text));
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                    DataCell(
+                      SizedBox(
+                        width: 50,
+                        child: TextFormField(
+                          controller: setsController,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          onFieldSubmitted: (value) {
+                            _updateExercise(exercise['exercise_name'], int.parse(repsController.text), int.parse(setsController.text));
+                          },
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteExercise(exercise['exercise_name']),
+                      ),
+                    ),
+                  ]);
+                }).toList(),
+              ),
             );
           },
         ),
@@ -118,7 +169,7 @@ class _DayPageState extends State<DayPage> {
           }
         },
         backgroundColor: Colors.blue,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
