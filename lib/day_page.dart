@@ -101,13 +101,13 @@ class _DayPageState extends State<DayPage> {
                 columnSpacing: 10.0,
                 columns: const [
                   DataColumn(label: Text('Exercise')),
-                  DataColumn(label: Text('Reps')),
                   DataColumn(label: Text('Sets')),
+                  DataColumn(label: Text('Reps')),
                   DataColumn(label: Text('Actions')),
                 ],
                 rows: exercises.map((exercise) {
-                  final TextEditingController repsController = TextEditingController(text: exercise['reps'].toString());
                   final TextEditingController setsController = TextEditingController(text: exercise['sets'].toString());
+                  final TextEditingController repsController = TextEditingController(text: exercise['reps'].toString());
 
                   return DataRow(cells: [
                     DataCell(Text(exercise['exercise_name'])),
@@ -115,7 +115,7 @@ class _DayPageState extends State<DayPage> {
                       SizedBox(
                         width: 50,
                         child: TextFormField(
-                          controller: repsController,
+                          controller: setsController,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
@@ -131,7 +131,7 @@ class _DayPageState extends State<DayPage> {
                       SizedBox(
                         width: 50,
                         child: TextFormField(
-                          controller: setsController,
+                          controller: repsController,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
