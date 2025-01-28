@@ -27,12 +27,15 @@ class _DayPageState extends State<DayPage> {
           .from('Split_Mapping')
           .select()
           .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
-          .eq('split_id', widget.day_id);
+          .eq('split_id', widget.day_id)
+          .order('order', ascending: true); // Order by the 'order' column
+
       print('Response: $response');
       return response.map((item) => {
         'exercise_name': item['exercise_name'] as String,
         'reps': (item['reps'] ?? 0) as int,
         'sets': (item['sets'] ?? 0) as int,
+        'order': item['order'] as int, // Include the order in the map
       }).toList();
     } catch (e) {
       print('Error fetching exercises: $e');

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'exercise_list_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/widgets.dart';
 
 class AddExercisePage extends StatefulWidget {
   final String day;
@@ -13,16 +15,64 @@ class AddExercisePage extends StatefulWidget {
   _AddExercisePageState createState() => _AddExercisePageState();
 }
 
-class _AddExercisePageState extends State<AddExercisePage> {
-  List<String> _selectedExercises = [];
+class _AddExercisePageState extends State<AddExercisePage> with RouteAware {
+  List<Map<String, dynamic>> _selectedExercises = [];
   final List<String> bodyParts = [
     'chest',
     'back',
     'legs',
     'arms',
     'shoulders',
-    'abs'
+    'abs',
+    'cardio'
   ];
+  int _currentOrder = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLargestOrder();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to the route observer
+    RouteObserver<ModalRoute<void>>().subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    // Unsubscribe from the route observer
+    RouteObserver<ModalRoute<void>>().unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when the current route has been popped off, and the current route shows up
+    _fetchLargestOrder();
+  }
+
+  Future<void> _fetchLargestOrder() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('Split_Mapping')
+          .select('order')
+          .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
+          .eq('split_id', widget.day_id)
+          .order('order', ascending: false)
+          .limit(1)
+          .single();
+      if (response != null) {
+        setState(() {
+          _currentOrder = response['order'] ?? 0;
+        });
+      }
+    } catch (e) {
+      print('Error fetching largest order: $e');
+    }
+  }
 
   void fetchExercises(String bodyPart) async {
     final url = Uri.parse('https://exercisedb.p.rapidapi.com/exercises/bodyPart/$bodyPart?limit=10&offset=0');
@@ -48,6 +98,7 @@ class _AddExercisePageState extends State<AddExercisePage> {
               bodyPart: bodyPart,
               exercises: exercises,
               day_id: widget.day_id,
+              initialOrder: _currentOrder,
             ),
           ),
         );
@@ -55,6 +106,7 @@ class _AddExercisePageState extends State<AddExercisePage> {
         if (result != null) {
           setState(() {
             _selectedExercises.addAll(result);
+            _currentOrder = result.last['order'];
           });
         }
       } else {
