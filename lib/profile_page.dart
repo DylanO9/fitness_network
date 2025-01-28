@@ -21,6 +21,14 @@ class _ProfilePageState extends State<ProfilePage> {
   double weight = 0.0;
   double height = 0.0;
 
+  bool isEditingDisplayName = false;
+  bool isEditingEmail = false;
+  bool isEditingCoachingStatus = false;
+  bool isEditingAge = false;
+  bool isEditingGender = false;
+  bool isEditingWeight = false;
+  bool isEditingHeight = false;
+
   Future<void> _fetchUserProfile() async {
     try {
       final user = Supabase.instance.client.auth.currentUser;
@@ -59,43 +67,137 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _updateUserProfile() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+
+      if (user != null) {
+        await Supabase.instance.client
+            .from('Fitness_Details')
+            .update({
+              'coaching_status': coachingStatus == 'Active',
+              'age': age,
+              'gender': gender,
+              'weight': weight,
+              'height': height,
+            })
+            .eq('user_id', user.id);
+
+        await Supabase.instance.client.auth.updateUser(
+          UserAttributes(
+            email: email,
+            data: {'display_name': displayName},
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error updating user profile: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: CircleAvatar(
-                    radius: 50,
-                    child: Icon(Icons.person, size: 50),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: CircleAvatar(
+                      radius: 50,
+                      child: Icon(Icons.person, size: 50),
+                    ),
                   ),
-                ),
-                SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    displayName,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  SizedBox(height: 16),
+                  Center(
+                    child: Text(
+                      displayName,
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
-                SizedBox(height: 16),
-                Divider(),
-                _buildProfileItem('Email', email),
-                _buildProfileItem('Coaching Status', coachingStatus),
-                _buildProfileItem('Age', age.toString()),
-                _buildProfileItem('Gender', gender),
-                _buildProfileItem('Weight', '${weight.toStringAsFixed(1)} lb'),
-                _buildProfileItem('Height', '${height.toStringAsFixed(1)} in'),
-              ],
+                  SizedBox(height: 16),
+                  Divider(),
+                  _buildEditableProfileItem('Display Name', displayName, isEditingDisplayName, (value) {
+                    setState(() {
+                      displayName = value;
+                    });
+                  }, () {
+                    setState(() {
+                      isEditingDisplayName = !isEditingDisplayName;
+                    });
+                  }),
+                  _buildEditableProfileItem('Email', email, isEditingEmail, (value) {
+                    setState(() {
+                      email = value;
+                    });
+                  }, () {
+                    setState(() {
+                      isEditingEmail = !isEditingEmail;
+                    });
+                  }),
+                  _buildEditableProfileItem('Coaching Status', coachingStatus, isEditingCoachingStatus, (value) {
+                    setState(() {
+                      coachingStatus = value;
+                    });
+                  }, () {
+                    setState(() {
+                      isEditingCoachingStatus = !isEditingCoachingStatus;
+                    });
+                  }),
+                  _buildEditableProfileItem('Age', age.toString(), isEditingAge, (value) {
+                    setState(() {
+                      age = int.tryParse(value) ?? 0;
+                    });
+                  }, () {
+                    setState(() {
+                      isEditingAge = !isEditingAge;
+                    });
+                  }),
+                  _buildEditableProfileItem('Gender', gender, isEditingGender, (value) {
+                    setState(() {
+                      gender = value;
+                    });
+                  }, () {
+                    setState(() {
+                      isEditingGender = !isEditingGender;
+                    });
+                  }),
+                  _buildEditableProfileItem('Weight', weight.toStringAsFixed(1), isEditingWeight, (value) {
+                    setState(() {
+                      weight = double.tryParse(value) ?? 0.0;
+                    });
+                  }, () {
+                    setState(() {
+                      isEditingWeight = !isEditingWeight;
+                    });
+                  }),
+                  _buildEditableProfileItem('Height', height.toStringAsFixed(1), isEditingHeight, (value) {
+                    setState(() {
+                      height = double.tryParse(value) ?? 0.0;
+                    });
+                  }, () {
+                    setState(() {
+                      isEditingHeight = !isEditingHeight;
+                    });
+                  }),
+                  SizedBox(height: 16),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _updateUserProfile,
+                      child: Text('Save Changes'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -103,7 +205,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileItem(String title, String value) {
+  Widget _buildEditableProfileItem(String title, String value, bool isEditing, ValueChanged<String> onChanged, VoidCallback onEdit) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -113,9 +215,35 @@ class _ProfilePageState extends State<ProfilePage> {
             title,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
-          Text(
-            value,
-            style: TextStyle(fontSize: 18),
+          SizedBox(width: 16),
+          Flexible(
+            child: isEditing
+                ? TextFormField(
+                    initialValue: value,
+                    onChanged: onChanged,
+                    decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.check),
+                        onPressed: onEdit,
+                      ),
+                    ),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          value,
+                          style: TextStyle(fontSize: 18),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: onEdit,
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),
