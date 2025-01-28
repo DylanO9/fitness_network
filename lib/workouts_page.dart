@@ -36,6 +36,22 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
     }
   }
 
+  void _deleteSplitDay(int id) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('Split_Days')
+          .delete()
+          .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
+          .eq('id', id);
+      print('Response: $response');
+      setState(() {
+        _splitDays = _fetchSplitDays();
+      });
+    } catch (e) {
+      print('Error deleting split day: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,8 +88,8 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     );
                   }
       
-                  final splitDays = snapshot.data!;
-                  return GridView.builder(
+                    final splitDays = snapshot.data!;
+                    return GridView.builder(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       childAspectRatio: 1.5, // Adjusted to make the items smaller
@@ -82,40 +98,55 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     itemBuilder: (context, index) {
                       final day = splitDays[index];
                       return Padding(
-                        padding: const EdgeInsets.all(4.0), // Reduced padding
-                        child: ElevatedButton(
+                      padding: const EdgeInsets.all(4.0), // Reduced padding
+                      child: Stack(
+                        children: [
+                        ElevatedButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DayPage(day: day['split_name'], day_id: day['id']),
-                              ),
-                            );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                            builder: (context) => DayPage(day: day['split_name'], day_id: day['id']),
+                            ),
+                          );
                           },
                           style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 48),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
-                            ),
-                            backgroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 48),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
                           ),
+                          backgroundColor: Colors.white,
+                          ),
+                          child: Align(
+                          alignment: Alignment.center,
                           child: Text(
                             day['split_name'],
                             style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.black,
+                            fontSize: 18,
+                            color: Colors.black,
                             ),
                           ),
+                          ),
                         ),
+                        Positioned(
+                          bottom: 4,
+                          right: 4,
+                          child: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => _deleteSplitDay(day['id']),
+                          ),
+                        ),
+                        ],
+                      ),
                       );
                     },
-                  );
-                },
+                    );
+                  },
+                  ),
+                ),
+                ],
               ),
-            ),
-          ],
-        ),
-      ),
+              ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           // Show dialog to add new split

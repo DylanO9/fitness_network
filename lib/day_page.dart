@@ -43,7 +43,7 @@ class _DayPageState extends State<DayPage> {
     }
   }
 
-  Future<void> _deleteExercise(String exercise) async {
+  void _deleteExercise(String exercise) async {
     try {
       final response = await Supabase.instance.client
           .from('Split_Mapping')
@@ -60,7 +60,7 @@ class _DayPageState extends State<DayPage> {
     }
   }
 
-  Future<void> _updateExercise(String exercise, int reps, int sets) async {
+  void _updateExercise(String exercise, int reps, int sets) async {
     try {
       final response = await Supabase.instance.client
           .from('Split_Mapping')
