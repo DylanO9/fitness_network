@@ -58,46 +58,76 @@ class ExerciseListPageState extends State<ExerciseListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Exercises for ${widget.bodyPart}"),
+        title: Text(
+          "Exercises for ${widget.bodyPart}",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.blue[800],
+        iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: widget.exercises.isEmpty
-          ? Text('No exercises available')
-          : ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-              itemCount: widget.exercises.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                    widget.exercises[index],
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue[800]!, Colors.blue[400]!],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: widget.exercises.isEmpty
+            ? Center(
+                child: Text(
+                  'No exercises available',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              )
+            : ListView.builder(
+                padding: EdgeInsets.all(16),
+                itemCount: widget.exercises.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    elevation: 4,
+                    margin: EdgeInsets.only(bottom: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                  ),
-                  trailing: Checkbox(
-                    value: _checked[index],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _checked[index] = value!;
-                        if (_checked[index]) {
-                          _selectedExercises.add({
-                            'exercise_name': widget.exercises[index],
-                            'order': _currentOrder + 1,
+                    child: ListTile(
+                      title: Text(
+                        widget.exercises[index],
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[800],
+                        ),
+                      ),
+                      trailing: Checkbox(
+                        value: _checked[index],
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _checked[index] = value!;
+                            if (_checked[index]) {
+                              _selectedExercises.add({
+                                'exercise_name': widget.exercises[index],
+                                'order': _currentOrder + 1,
+                              });
+                            } else {
+                              _selectedExercises.removeWhere((e) => e['exercise_name'] == widget.exercises[index]);
+                            }
                           });
-                        } else {
-                          _selectedExercises.removeWhere((e) => e['exercise_name'] == widget.exercises[index]);
-                        }
-                      });
-                    },
-                    activeColor: Colors.blue,
-                  ),
-                );
-              },
-            ),
+                        },
+                        activeColor: Colors.blue[800],
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _saveSelectedExercises,
-        child: Icon(Icons.save),
+        backgroundColor: Colors.white,
+        child: Icon(
+          Icons.save,
+          color: Colors.blue[800],
+        ),
         tooltip: 'Save selected exercises',
       ),
     );

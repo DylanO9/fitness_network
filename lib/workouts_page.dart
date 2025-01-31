@@ -55,23 +55,67 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue[800]!, Colors.blue[400]!],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: Column(
           children: [
-            const Text(
-              'Workouts',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            // Calendar Section
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TableCalendar(
+                    focusedDay: _selectedDay,
+                    firstDay: DateTime(2025, 1, 1),
+                    lastDay: DateTime(2026, 12, 31),
+                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                    onDaySelected: (selectedDay, focusedDay) => setState(() {
+                      _selectedDay = selectedDay;
+                    }),
+                    calendarStyle: CalendarStyle(
+                      todayDecoration: BoxDecoration(
+                        color: Colors.blue[800],
+                        shape: BoxShape.circle,
+                      ),
+                      selectedDecoration: BoxDecoration(
+                        color: Colors.blue[400],
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    headerStyle: HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                      titleTextStyle: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[800],
+                      ),
+                      leftChevronIcon: Icon(
+                        Icons.chevron_left,
+                        color: Colors.blue[800],
+                      ),
+                      rightChevronIcon: Icon(
+                        Icons.chevron_right,
+                        color: Colors.blue[800],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
-            // Add widget for calendar
-            TableCalendar(
-              focusedDay: DateTime.now(), 
-              firstDay: DateTime(2025, 1, 1), 
-              lastDay: DateTime(2026, 12, 31),
-              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-              onDaySelected: (selectedDay, focusedDay) => setState(() {
-                _selectedDay = selectedDay;
-              }),
-            ),
+
+            // Split Days Section
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
                 future: _splitDays,
@@ -80,80 +124,95 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
                     return Center(
-                      child: Text('Error: ${snapshot.error}'),
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     );
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Text('No split days found'),
+                    return Center(
+                      child: Text(
+                        'No split days found',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     );
                   }
-      
-                    final splitDays = snapshot.data!;
-                    return GridView.builder(
+
+                  final splitDays = snapshot.data!;
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(16.0),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 1.5, // Adjusted to make the items smaller
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.5,
                     ),
                     itemCount: splitDays.length,
                     itemBuilder: (context, index) {
                       final day = splitDays[index];
-                      return Padding(
-                      padding: const EdgeInsets.all(4.0), // Reduced padding
-                      child: Stack(
-                        children: [
-                        ElevatedButton(
-                          onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                            builder: (context) => DayPage(day: day['split_name'], day_id: day['id']),
-                            ),
-                          );
-                          },
-                          style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero,
-                          ),
-                          backgroundColor: Colors.white,
-                          ),
-                          child: Align(
-                          alignment: Alignment.center,
-                          child: Text(
-                            day['split_name'],
-                            style: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.black,
-                            ),
-                          ),
-                          ),
+                      return Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        Positioned(
-                          bottom: 4,
-                          right: 4,
-                          child: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => _deleteSplitDay(day['id']),
-                          ),
+                        child: Stack(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DayPage(
+                                      day: day['split_name'],
+                                      day_id: day['id'],
+                                    ),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(15),
+                              child: Center(
+                                child: Text(
+                                  day['split_name'],
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue[800],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.delete,
+                                  color: Colors.red[400],
+                                ),
+                                onPressed: () => _deleteSplitDay(day['id']),
+                              ),
+                            ),
+                          ],
                         ),
-                        ],
-                      ),
                       );
                     },
-                    );
-                  },
-                  ),
-                ),
-                ],
+                  );
+                },
               ),
-              ),
+            ),
+          ],
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           // Show dialog to add new split
           await _showAddSplitDialog();
         },
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.white,
+        child: Icon(
+          Icons.add,
+          color: Colors.blue[800],
+        ),
       ),
     );
   }
@@ -165,26 +224,43 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Add New Split'),
+          title: Text(
+            'Add New Split',
+            style: TextStyle(color: Colors.blue[800]),
+          ),
           content: TextField(
             controller: _controller,
-            decoration: const InputDecoration(hintText: 'Enter split name'),
+            decoration: InputDecoration(
+              hintText: 'Enter split name',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.blue[800]),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Save'),
+              child: Text(
+                'Save',
+                style: TextStyle(color: Colors.blue[800]),
+              ),
               onPressed: () async {
                 final splitName = _controller.text;
                 if (splitName.isNotEmpty) {
                   await Supabase.instance.client
                       .from('Split_Days')
-                      .insert({'user_id': Supabase.instance.client.auth.currentUser!.id, 'split_name': splitName});
+                      .insert({
+                        'user_id': Supabase.instance.client.auth.currentUser!.id,
+                        'split_name': splitName,
+                      });
                   setState(() {
                     _splitDays = _fetchSplitDays();
                   });

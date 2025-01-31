@@ -126,34 +126,53 @@ class _AddExercisePageState extends State<AddExercisePage> with RouteAware {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Add Exercise for ${widget.day}"),
+          title: Text(
+            "Add Exercise for ${widget.day}",
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.blue[800],
+          iconTheme: IconThemeData(color: Colors.white),
         ),
-        body: ListView.builder(
-          itemCount: bodyParts.length,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0.0),
-              child: SizedBox(
-                width: double.infinity,
-                height: 150,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  onPressed: () => fetchExercises(bodyParts[index]),
-                  child: Text(
-                    bodyParts[index],
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue[800]!, Colors.blue[400]!],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: GridView.builder(
+            padding: EdgeInsets.all(16),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.5,
+            ),
+            itemCount: bodyParts.length,
+            itemBuilder: (context, index) {
+              return Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(15),
+                  onTap: () => fetchExercises(bodyParts[index]),
+                  child: Center(
+                    child: Text(
+                      bodyParts[index].toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[800],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

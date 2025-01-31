@@ -81,77 +81,132 @@ class _DayPageState extends State<DayPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.day),
+        title: Text(
+          widget.day,
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.blue[800],
+        iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: Center(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue[800]!, Colors.blue[400]!],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: FutureBuilder<List<Map<String, dynamic>>>(
           future: _exercises,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
+              return Center(child: CircularProgressIndicator(color: Colors.white));
             } else if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
+              return Center(
+                child: Text(
+                  'Error: ${snapshot.error}',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Text('No exercises found');
+              return Center(
+                child: Text(
+                  'No exercises found',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
             }
 
             final exercises = snapshot.data!;
-            return SingleChildScrollView(
-              child: DataTable(
-                columnSpacing: 10.0,
-                columns: const [
-                  DataColumn(label: Text('Exercise')),
-                  DataColumn(label: Text('Sets')),
-                  DataColumn(label: Text('Reps')),
-                  DataColumn(label: Text('Actions')),
-                ],
-                rows: exercises.map((exercise) {
-                  final TextEditingController setsController = TextEditingController(text: exercise['sets'].toString());
-                  final TextEditingController repsController = TextEditingController(text: exercise['reps'].toString());
+            return ListView.builder(
+              padding: EdgeInsets.all(16),
+              itemCount: exercises.length,
+              itemBuilder: (context, index) {
+                final exercise = exercises[index];
+                final TextEditingController setsController = TextEditingController(text: exercise['sets'].toString());
+                final TextEditingController repsController = TextEditingController(text: exercise['reps'].toString());
 
-                  return DataRow(cells: [
-                    DataCell(Text(exercise['exercise_name'])),
-                    DataCell(
-                      SizedBox(
-                        width: 50,
-                        child: TextFormField(
-                          controller: setsController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
+                return Card(
+                  elevation: 4,
+                  margin: EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Exercise Name
+                        Text(
+                          exercise['exercise_name'],
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[800],
                           ),
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          onFieldSubmitted: (value) {
-                            _updateExercise(exercise['exercise_name'], int.parse(repsController.text), int.parse(setsController.text));
-                          },
                         ),
-                      ),
-                    ),
-                    DataCell(
-                      SizedBox(
-                        width: 50,
-                        child: TextFormField(
-                          controller: repsController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
+                        SizedBox(height: 10),
+
+                        // Sets and Reps Input Fields
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: setsController,
+                                decoration: InputDecoration(
+                                  labelText: 'Sets',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                onFieldSubmitted: (value) {
+                                  _updateExercise(
+                                    exercise['exercise_name'],
+                                    int.parse(repsController.text),
+                                    int.parse(setsController.text),
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: TextFormField(
+                                controller: repsController,
+                                decoration: InputDecoration(
+                                  labelText: 'Reps',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                onFieldSubmitted: (value) {
+                                  _updateExercise(
+                                    exercise['exercise_name'],
+                                    int.parse(repsController.text),
+                                    int.parse(setsController.text),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+
+                        // Delete Button
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red[400]),
+                            onPressed: () => _deleteExercise(exercise['exercise_name']),
                           ),
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          onFieldSubmitted: (value) {
-                            _updateExercise(exercise['exercise_name'], int.parse(repsController.text), int.parse(setsController.text));
-                          },
                         ),
-                      ),
+                      ],
                     ),
-                    DataCell(
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteExercise(exercise['exercise_name']),
-                      ),
-                    ),
-                  ]);
-                }).toList(),
-              ),
+                  ),
+                );
+              },
             );
           },
         ),
@@ -171,8 +226,11 @@ class _DayPageState extends State<DayPage> {
             });
           }
         },
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.white,
+        child: Icon(
+          Icons.add,
+          color: Colors.blue[800],
+        ),
       ),
     );
   }

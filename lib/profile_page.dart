@@ -50,10 +50,10 @@ class _ProfilePageState extends State<ProfilePage> {
         if (response != null && response is Map) {
           setState(() {
             coachingStatus = response['coaching_status'] == true
-              ? 'Active'
-              : response['coaching_status'] == false
-                ? 'Not Active'
-                : 'No Status';
+                ? 'Active'
+                : response['coaching_status'] == false
+                    ? 'Not Active'
+                    : 'No Status';
             age = response['age'] ?? 0;
             gender = response['gender'] ?? 'No Gender';
             weight = (response['weight'] ?? 0).toDouble();
@@ -98,106 +98,191 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: CircleAvatar(
-                      radius: 50,
-                      child: Icon(Icons.person, size: 50),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue[800]!, Colors.blue[400]!],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                // Profile Picture and Name
+                Center(
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          Icons.person,
+                          size: 60,
+                          color: Colors.blue[800],
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        displayName,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        email,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 24),
+
+                // Profile Details Card
+                Card(
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        _buildEditableProfileItem(
+                          'Display Name',
+                          displayName,
+                          isEditingDisplayName,
+                          (value) {
+                            setState(() {
+                              displayName = value;
+                            });
+                          },
+                          () {
+                            setState(() {
+                              isEditingDisplayName = !isEditingDisplayName;
+                            });
+                          },
+                        ),
+                        _buildEditableProfileItem(
+                          'Email',
+                          email,
+                          isEditingEmail,
+                          (value) {
+                            setState(() {
+                              email = value;
+                            });
+                          },
+                          () {
+                            setState(() {
+                              isEditingEmail = !isEditingEmail;
+                            });
+                          },
+                        ),
+                        _buildEditableProfileItem(
+                          'Coaching Status',
+                          coachingStatus,
+                          isEditingCoachingStatus,
+                          (value) {
+                            setState(() {
+                              coachingStatus = value;
+                            });
+                          },
+                          () {
+                            setState(() {
+                              isEditingCoachingStatus = !isEditingCoachingStatus;
+                            });
+                          },
+                        ),
+                        _buildEditableProfileItem(
+                          'Age',
+                          age.toString(),
+                          isEditingAge,
+                          (value) {
+                            setState(() {
+                              age = int.tryParse(value) ?? 0;
+                            });
+                          },
+                          () {
+                            setState(() {
+                              isEditingAge = !isEditingAge;
+                            });
+                          },
+                        ),
+                        _buildEditableProfileItem(
+                          'Gender',
+                          gender,
+                          isEditingGender,
+                          (value) {
+                            setState(() {
+                              gender = value;
+                            });
+                          },
+                          () {
+                            setState(() {
+                              isEditingGender = !isEditingGender;
+                            });
+                          },
+                        ),
+                        _buildEditableProfileItem(
+                          'Weight',
+                          weight.toStringAsFixed(1),
+                          isEditingWeight,
+                          (value) {
+                            setState(() {
+                              weight = double.tryParse(value) ?? 0.0;
+                            });
+                          },
+                          () {
+                            setState(() {
+                              isEditingWeight = !isEditingWeight;
+                            });
+                          },
+                        ),
+                        _buildEditableProfileItem(
+                          'Height',
+                          height.toStringAsFixed(1),
+                          isEditingHeight,
+                          (value) {
+                            setState(() {
+                              height = double.tryParse(value) ?? 0.0;
+                            });
+                          },
+                          () {
+                            setState(() {
+                              isEditingHeight = !isEditingHeight;
+                            });
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 16),
-                  Center(
-                    child: Text(
-                      displayName,
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 24),
+
+                // Save Changes Button
+                ElevatedButton(
+                  onPressed: _updateUserProfile,
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.blue[800], backgroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  SizedBox(height: 16),
-                  Divider(),
-                  _buildEditableProfileItem('Display Name', displayName, isEditingDisplayName, (value) {
-                    setState(() {
-                      displayName = value;
-                    });
-                  }, () {
-                    setState(() {
-                      isEditingDisplayName = !isEditingDisplayName;
-                    });
-                  }),
-                  _buildEditableProfileItem('Email', email, isEditingEmail, (value) {
-                    setState(() {
-                      email = value;
-                    });
-                  }, () {
-                    setState(() {
-                      isEditingEmail = !isEditingEmail;
-                    });
-                  }),
-                  _buildEditableProfileItem('Coaching Status', coachingStatus, isEditingCoachingStatus, (value) {
-                    setState(() {
-                      coachingStatus = value;
-                    });
-                  }, () {
-                    setState(() {
-                      isEditingCoachingStatus = !isEditingCoachingStatus;
-                    });
-                  }),
-                  _buildEditableProfileItem('Age', age.toString(), isEditingAge, (value) {
-                    setState(() {
-                      age = int.tryParse(value) ?? 0;
-                    });
-                  }, () {
-                    setState(() {
-                      isEditingAge = !isEditingAge;
-                    });
-                  }),
-                  _buildEditableProfileItem('Gender', gender, isEditingGender, (value) {
-                    setState(() {
-                      gender = value;
-                    });
-                  }, () {
-                    setState(() {
-                      isEditingGender = !isEditingGender;
-                    });
-                  }),
-                  _buildEditableProfileItem('Weight', weight.toStringAsFixed(1), isEditingWeight, (value) {
-                    setState(() {
-                      weight = double.tryParse(value) ?? 0.0;
-                    });
-                  }, () {
-                    setState(() {
-                      isEditingWeight = !isEditingWeight;
-                    });
-                  }),
-                  _buildEditableProfileItem('Height', height.toStringAsFixed(1), isEditingHeight, (value) {
-                    setState(() {
-                      height = double.tryParse(value) ?? 0.0;
-                    });
-                  }, () {
-                    setState(() {
-                      isEditingHeight = !isEditingHeight;
-                    });
-                  }),
-                  SizedBox(height: 16),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: _updateUserProfile,
-                      child: Text('Save Changes'),
-                    ),
+                  child: Text(
+                    'Save Changes',
+                    style: TextStyle(fontSize: 18),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -205,46 +290,57 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildEditableProfileItem(String title, String value, bool isEditing, ValueChanged<String> onChanged, VoidCallback onEdit) {
+  Widget _buildEditableProfileItem(
+    String title,
+    String value,
+    bool isEditing,
+    ValueChanged<String> onChanged,
+    VoidCallback onEdit,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
+            ),
           ),
-          SizedBox(width: 16),
-          Flexible(
-            child: isEditing
-                ? TextFormField(
-                    initialValue: value,
-                    onChanged: onChanged,
-                    decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.check),
-                        onPressed: onEdit,
+          SizedBox(height: 4),
+          isEditing
+              ? TextFormField(
+                  initialValue: value,
+                  onChanged: onChanged,
+                  decoration: InputDecoration(
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.check, color: Colors.blue[800]),
+                      onPressed: onEdit,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          value,
-                          style: TextStyle(fontSize: 18),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: onEdit,
-                      ),
-                    ],
-                  ),
-          ),
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Colors.blue[800]),
+                      onPressed: onEdit,
+                    ),
+                  ],
+                ),
         ],
       ),
     );
