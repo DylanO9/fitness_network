@@ -240,42 +240,51 @@ class _ExerciseTileState extends State<ExerciseTile> {
                     );
                   },
                 ),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Weight (lbs)',
-                    labelStyle: TextStyle(color: Colors.black),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    _weight = int.tryParse(value) ?? 0;
-                  },
-                ),
                 SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Reps',
-                    labelStyle: TextStyle(color: Colors.black),
-                    border: OutlineInputBorder(
+                Row(
+                  children: [
+                  Expanded(
+                    child: TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Weight (lbs)',
+                      labelStyle: TextStyle(color: Colors.black),
+                      border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black),
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      _weight = int.tryParse(value) ?? 0;
+                    },
                     ),
                   ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    _reps = int.tryParse(value) ?? 0;
-                  },
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Reps',
+                      labelStyle: TextStyle(color: Colors.black),
+                      border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black),
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      _reps = int.tryParse(value) ?? 0;
+                    },
+                    ),
+                  ),
+                  ],
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
