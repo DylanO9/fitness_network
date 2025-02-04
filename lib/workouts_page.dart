@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'day_page.dart';
+import 'calendar_log_page.dart'; // New page for displaying calendar logs
 
 class WorkoutsPage extends StatefulWidget {
   @override
@@ -11,11 +12,13 @@ class WorkoutsPage extends StatefulWidget {
 class _WorkoutsPageState extends State<WorkoutsPage> {
   DateTime _selectedDay = DateTime.now();
   late Future<List<Map<String, dynamic>>> _splitDays;
+  final Map<DateTime, List<Map<String, dynamic>>> _calendarLogs = {}; // Track calendar logs
 
   @override
   void initState() {
     super.initState();
     _splitDays = _fetchSplitDays(); // Initialize the future here
+    _fetchCalendarLogs(); // Fetch existing calendar logs
   }
 
   Future<List<Map<String, dynamic>>> _fetchSplitDays() async {
@@ -36,6 +39,24 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
     }
   }
 
+  Future<void> _fetchCalendarLogs() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('Calendar_Logs')
+          .select()
+          .eq('user_id', Supabase.instance.client.auth.currentUser!.id);
+
+      for (var log in response) {
+        final date = DateTime.parse(log['date']);
+        setState(() {
+          _calendarLogs[date] = [..._calendarLogs[date] ?? [], log];
+        });
+      }
+    } catch (e) {
+      print('Error fetching calendar logs: $e');
+    }
+  }
+
   void _deleteSplitDay(int id) async {
     try {
       final response = await Supabase.instance.client
@@ -49,6 +70,23 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
       });
     } catch (e) {
       print('Error deleting split day: $e');
+    }
+  }
+
+  Future<void> _logCalendarLog(int splitDayId, DateTime date) async {
+    try {
+      await Supabase.instance.client
+          .from('Calendar_Logs')
+          .insert({
+            'user_id': Supabase.instance.client.auth.currentUser!.id,
+            'split_id': splitDayId,
+            'date': date.toIso8601String(),
+          });
+      setState(() {
+        _calendarLogs[date] = [..._calendarLogs[date] ?? [], {'split_id': splitDayId}];
+      });
+    } catch (e) {
+      print('Error logging calendar log: $e');
     }
   }
 
@@ -80,9 +118,21 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     firstDay: DateTime(2025, 1, 1),
                     lastDay: DateTime(2026, 12, 31),
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    onDaySelected: (selectedDay, focusedDay) => setState(() {
-                      _selectedDay = selectedDay;
-                    }),
+                    onDaySelected: (selectedDay, focusedDay) {
+                      setState(() {
+                        _selectedDay = selectedDay;
+                      });
+                      // Navigate to the calendar log page for the selected date
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CalendarLogPage(
+                            date: selectedDay,
+                            splitDayId: _calendarLogs[selectedDay]?.first['split_id'],
+                          ),
+                        ),
+                      );
+                    },
                     calendarStyle: CalendarStyle(
                       todayDecoration: BoxDecoration(
                         color: Colors.blue[800],
@@ -92,24 +142,14 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                         color: Colors.blue[400],
                         shape: BoxShape.circle,
                       ),
-                    ),
-                    headerStyle: HeaderStyle(
-                      formatButtonVisible: false,
-                      titleCentered: true,
-                      titleTextStyle: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue[800],
-                      ),
-                      leftChevronIcon: Icon(
-                        Icons.chevron_left,
-                        color: Colors.blue[800],
-                      ),
-                      rightChevronIcon: Icon(
-                        Icons.chevron_right,
-                        color: Colors.blue[800],
+                      markersAlignment: Alignment.bottomCenter,
+                      markersAutoAligned: true,
+                      markerDecoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
                       ),
                     ),
+                    eventLoader: (date) => _calendarLogs[date] ?? [],
                   ),
                 ),
               ),
@@ -150,49 +190,65 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     itemCount: splitDays.length,
                     itemBuilder: (context, index) {
                       final day = splitDays[index];
-                      return Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                      return Draggable<Map<String, dynamic>>(
+                        data: day,
+                        feedback: Material(
+                          child: Container(
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Text(
+                              day['split_name'],
+                              style: TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                          ),
                         ),
-                        child: Stack(
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => DayPage(
-                                      day: day['split_name'],
-                                      day_id: day['id'],
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Stack(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => DayPage(
+                                        day: day['split_name'],
+                                        day_id: day['id'],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(15),
+                                child: Center(
+                                  child: Text(
+                                    day['split_name'],
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue[800],
                                     ),
                                   ),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(15),
-                              child: Center(
-                                child: Text(
-                                  day['split_name'],
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue[800],
+                                ),
+                              ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.delete,
+                                    color: Colors.red[400],
                                   ),
+                                  onPressed: () => _deleteSplitDay(day['id']),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.delete,
-                                  color: Colors.red[400],
-                                ),
-                                onPressed: () => _deleteSplitDay(day['id']),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -203,16 +259,23 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // Show dialog to add new split
-          await _showAddSplitDialog();
+      floatingActionButton: DragTarget<Map<String, dynamic>>(
+        onAccept: (data) {
+          _logCalendarLog(data['id'], _selectedDay);
         },
-        backgroundColor: Colors.white,
-        child: Icon(
-          Icons.add,
-          color: Colors.blue[800],
-        ),
+        builder: (context, candidateData, rejectedData) {
+          return FloatingActionButton(
+            onPressed: () async {
+              // Show dialog to add new split
+              await _showAddSplitDialog();
+            },
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.add,
+              color: Colors.blue[800],
+            ),
+          );
+        },
       ),
     );
   }
