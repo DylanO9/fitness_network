@@ -43,33 +43,57 @@ class _CalendarLogPageState extends State<CalendarLogPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Calendar Log for ${widget.date.toLocal().toString().split(' ')[0]}'),
+        title: Text(
+          'Calendar Log for ${widget.date.toLocal().toString().split(' ')[0]}',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.blue[800],
+        iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _exercises,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No exercises found'));
-          }
-
-          final exercises = snapshot.data!;
-          return ListView.builder(
-            padding: EdgeInsets.all(16),
-            itemCount: exercises.length,
-            itemBuilder: (context, index) {
-              final exercise = exercises[index];
-              return ExerciseTile(
-                exerciseName: exercise['exercise_name'],
-                exerciseId: exercise['exercise_id'],
-                date: widget.date,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue[800]!, Colors.blue[400]!],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _exercises,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator(color: Colors.white));
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Error: ${snapshot.error}',
+                  style: TextStyle(color: Colors.white),
+                ),
               );
-            },
-          );
-        },
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                child: Text(
+                  'No exercises found',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
+
+            final exercises = snapshot.data!;
+            return ListView.builder(
+              padding: EdgeInsets.all(16),
+              itemCount: exercises.length,
+              itemBuilder: (context, index) {
+                final exercise = exercises[index];
+                return ExerciseTile(
+                  exerciseName: exercise['exercise_name'],
+                  exerciseId: exercise['exercise_id'],
+                  date: widget.date,
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -152,7 +176,11 @@ class _ExerciseTileState extends State<ExerciseTile> {
       child: ExpansionTile(
         title: Text(
           widget.exerciseName,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
         ),
         initiallyExpanded: _isExpanded,
         onExpansionChanged: (expanded) {
@@ -169,27 +197,81 @@ class _ExerciseTileState extends State<ExerciseTile> {
                   future: _logs,
                   builder: (context, snapshot) {
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Text('No logs found');
+                      return Text(
+                        'No logs found',
+                        style: TextStyle(color: Colors.grey[700]),
+                      );
                     }
                     return Column(
                       children: snapshot.data!.map((log) {
-                        return ListTile(
-                          title: Text('Weight: ${log['weight']} lbs'),
-                          subtitle: Text('Reps: ${log['reps']}'),
+                        return Table(
+                          columnWidths: {
+                          0: FlexColumnWidth(1),
+                          1: FlexColumnWidth(1),
+                          },
+                          children: [
+                          TableRow(
+                            children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                              'Weight: ${log['weight']} lbs',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                              'Reps: ${log['reps']}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                              ),
+                            ),
+                            ],
+                          ),
+                          ],
                         );
                       }).toList(),
                     );
                   },
                 ),
                 TextField(
-                  decoration: InputDecoration(labelText: 'Weight (lbs)'),
+                  decoration: InputDecoration(
+                    labelText: 'Weight (lbs)',
+                    labelStyle: TextStyle(color: Colors.black),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                  ),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
                     _weight = int.tryParse(value) ?? 0;
                   },
                 ),
+                SizedBox(height: 10),
                 TextField(
-                  decoration: InputDecoration(labelText: 'Reps'),
+                  decoration: InputDecoration(
+                    labelText: 'Reps',
+                    labelStyle: TextStyle(color: Colors.black),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                  ),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
                     _reps = int.tryParse(value) ?? 0;
@@ -202,7 +284,20 @@ class _ExerciseTileState extends State<ExerciseTile> {
                       _logWeightReps();
                     }
                   },
-                  child: Text('Add'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[800],
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    'Add',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ],
             ),
