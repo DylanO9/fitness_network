@@ -46,12 +46,25 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
           .select()
           .eq('user_id', Supabase.instance.client.auth.currentUser!.id);
 
+      print('Calendar Logs Response: $response');
+
+      Map<DateTime, List<Map<String, dynamic>>> tempLogs = {};
+
       for (var log in response) {
-        final date = DateTime.parse(log['date']);
-        setState(() {
-          _calendarLogs[date] = [..._calendarLogs[date] ?? [], log];
-        });
+        final date = DateTime.parse(log['date']).toUtc(); // Store in UTC
+        final normalizedDate = DateTime(date.year, date.month, date.day);
+        
+        if (!tempLogs.containsKey(normalizedDate)) {
+          tempLogs[normalizedDate] = [];
+        }
+        tempLogs[normalizedDate]!.add(log);
       }
+
+      setState(() {
+        _calendarLogs.clear();
+        _calendarLogs.addAll(tempLogs);
+      });
+
     } catch (e) {
       print('Error fetching calendar logs: $e');
     }
@@ -82,8 +95,11 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
             'split_id': splitDayId,
             'date': date.toIso8601String(),
           });
+      
       setState(() {
-        _calendarLogs[date] = [..._calendarLogs[date] ?? [], {'split_id': splitDayId}];
+        final normalizedDate = DateTime(date.year, date.month, date.day);
+        _calendarLogs[normalizedDate] = [..._calendarLogs[normalizedDate] ?? [], {'split_id': splitDayId}];
+        print(_calendarLogs);
       });
     } catch (e) {
       print('Error logging calendar log: $e');
@@ -119,16 +135,20 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                     lastDay: DateTime(2026, 12, 31),
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                     onDaySelected: (selectedDay, focusedDay) {
+                      final normalizedDate = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
                       setState(() {
-                        _selectedDay = selectedDay;
+                        _selectedDay = normalizedDate;
                       });
-                      // Navigate to the calendar log page for the selected date
+
+                      final logsForDate = _calendarLogs[normalizedDate];
+                      final splitDayId = logsForDate?.isNotEmpty == true ? logsForDate?.first['split_id'] : null;
+
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => CalendarLogPage(
-                            date: selectedDay,
-                            splitDayId: _calendarLogs[selectedDay]?.first['split_id'],
+                            date: normalizedDate,
+                            splitDayId: splitDayId,
                           ),
                         ),
                       );
@@ -149,7 +169,10 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    eventLoader: (date) => _calendarLogs[date] ?? [],
+                    eventLoader: (date) {
+                      final normalizedDate = DateTime(date.year, date.month, date.day);
+                      return _calendarLogs[normalizedDate] ?? [];
+                    },
                   ),
                 ),
               ),

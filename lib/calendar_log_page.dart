@@ -26,9 +26,10 @@ class _CalendarLogPageState extends State<CalendarLogPage> {
           .from('Split_Mapping')
           .select()
           .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
-          .eq('split_id', widget.splitDayId!)
+          .eq('split_id', widget.splitDayId ?? 0)
           .order('order', ascending: true);
-
+      print(response);
+      print(widget.splitDayId);
       return response.map((item) => {
         'exercise_name': item['exercise_name'] as String,
         'exercise_id': item['id'],
