@@ -13,32 +13,11 @@ class CalendarLogPage extends StatefulWidget {
 
 class _CalendarLogPageState extends State<CalendarLogPage> {
   late Future<List<Map<String, dynamic>>> _exercises;
-  late Future<List<Map<String, dynamic>>> _splitDays;
 
   @override
   void initState() {
     super.initState();
-    _splitDays = _fetchSplitDays(); // Initialize the future here
     _exercises = _fetchExercises();
-  }
-
-  // Grab all the information related to the split such as split_name and all related exercises
-  Future<List<Map<String, dynamic>>> _fetchSplitDays() async {
-    try {
-      final response = await Supabase.instance.client
-          .from('Split_Days')
-          .select()
-          .eq('id', widget.splitDayId!);
-      print('Response: $response');
-      final data = response as List<dynamic>;
-      return data.map((item) => {
-        'split_name': item['split_name'],
-        'id': item['id'],
-      }).toList();
-    } catch (e) {
-      print('Error fetching split days: $e');
-      return [];
-    }
   }
 
   Future<List<Map<String, dynamic>>> _fetchExercises() async {
@@ -48,14 +27,11 @@ class _CalendarLogPageState extends State<CalendarLogPage> {
           .select()
           .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
           .eq('split_id', widget.splitDayId!)
-          .order('order', ascending: true); // Order by the 'order' column
+          .order('order', ascending: true);
 
-      print('Response: $response');
       return response.map((item) => {
         'exercise_name': item['exercise_name'] as String,
-        'reps': (item['reps'] ?? 0) as int,
-        'sets': (item['sets'] ?? 0) as int,
-        'order': item['order'] as int, // Include the order in the map
+        'exercise_id': item['id'],
       }).toList();
     } catch (e) {
       print('Error fetching exercises: $e');
@@ -63,6 +39,7 @@ class _CalendarLogPageState extends State<CalendarLogPage> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -72,21 +49,11 @@ class _CalendarLogPageState extends State<CalendarLogPage> {
         future: _exercises,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator(color: Colors.white));
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-                style: TextStyle(color: Colors.white),
-              ),
-            );
+            return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Text(
-                'No exercises found',
-                style: TextStyle(color: Colors.white),
-              ),
-            );
+            return Center(child: Text('No exercises found'));
           }
 
           final exercises = snapshot.data!;
@@ -95,34 +62,152 @@ class _CalendarLogPageState extends State<CalendarLogPage> {
             itemCount: exercises.length,
             itemBuilder: (context, index) {
               final exercise = exercises[index];
-
-              return Card(
-                elevation: 4,
-                margin: EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Exercise Name
-                      Text(
-                        exercise['exercise_name'],
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[800],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return ExerciseTile(
+                exerciseName: exercise['exercise_name'],
+                exerciseId: exercise['exercise_id'],
+                date: widget.date,
               );
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class ExerciseTile extends StatefulWidget {
+  final String exerciseName;
+  final int exerciseId;
+  final DateTime date;
+
+  const ExerciseTile({
+    Key? key,
+    required this.date,
+    required this.exerciseName,
+    required this.exerciseId,
+  }) : super(key: key);
+
+  @override
+  _ExerciseTileState createState() => _ExerciseTileState();
+}
+
+class _ExerciseTileState extends State<ExerciseTile> {
+  bool _isExpanded = false;
+  int _weight = 0;
+  int _reps = 0;
+  late Future<List<Map<String, dynamic>>> _logs;
+
+  @override
+  void initState() {
+    super.initState();
+    _logs = _fetchLogs();
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchLogs() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('Exercise_Logs')
+          .select()
+          .eq('split_mapping_id', widget.exerciseId)
+          .eq('date', widget.date.toIso8601String())
+          .eq('user_id', Supabase.instance.client.auth.currentUser!.id)
+          .order('date', ascending: false);
+
+      return response.map((item) => {
+        'weight': item['weight'],
+        'reps': item['reps'],
+        'date': item['date'],
+      }).toList();
+    } catch (e) {
+      print('Error fetching logs: $e');
+      return [];
+    }
+  }
+
+  Future<void> _logWeightReps() async {
+    try {
+      await Supabase.instance.client.from('Exercise_Logs').insert({
+        'split_mapping_id': widget.exerciseId,
+        'weight': _weight,
+        'reps': _reps,
+        'date': widget.date.toIso8601String(),
+        'user_id': Supabase.instance.client.auth.currentUser!.id,
+      });
+      setState(() {
+        _logs = _fetchLogs();
+      });
+    } catch (e) {
+      print('Error logging weight/reps: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      margin: EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: ExpansionTile(
+        title: Text(
+          widget.exerciseName,
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        initiallyExpanded: _isExpanded,
+        onExpansionChanged: (expanded) {
+          setState(() {
+            _isExpanded = expanded;
+          });
+        },
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              children: [
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _logs,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Text('No logs found');
+                    }
+                    return Column(
+                      children: snapshot.data!.map((log) {
+                        return ListTile(
+                          title: Text('Weight: ${log['weight']} lbs'),
+                          subtitle: Text('Reps: ${log['reps']}'),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+                TextField(
+                  decoration: InputDecoration(labelText: 'Weight (lbs)'),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    _weight = int.tryParse(value) ?? 0;
+                  },
+                ),
+                TextField(
+                  decoration: InputDecoration(labelText: 'Reps'),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    _reps = int.tryParse(value) ?? 0;
+                  },
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_weight > 0 && _reps > 0) {
+                      _logWeightReps();
+                    }
+                  },
+                  child: Text('Add'),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
