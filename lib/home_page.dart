@@ -10,8 +10,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> logs = [];
-  Map<int, List<Map<String, dynamic>>> exerciseLogs = {};
-  int? selectedExerciseId;
+  Map<String, List<Map<String, dynamic>>> exerciseLogs = {};
+  String? selectedExerciseName;
   DateTime? earliestDate;
 
   @override
@@ -36,30 +36,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _groupByExercise() {
-    Map<int, List<Map<String, dynamic>>> grouped = {};
+    Map<String, List<Map<String, dynamic>>> grouped = {};
     for (var log in logs) {
-      int exerciseId = log['split_mapping_id'];
-      if (!grouped.containsKey(exerciseId)) {
-        grouped[exerciseId] = [];
+      String exerciseName = log['exercise_name'];
+      if (!grouped.containsKey(exerciseName)) {
+        grouped[exerciseName] = [];
       }
-      grouped[exerciseId]!.add(log);
+      grouped[exerciseName]!.add(log);
     }
     setState(() {  
       exerciseLogs = grouped;
       if (exerciseLogs.isNotEmpty) {
-        selectedExerciseId = exerciseLogs.keys.first;
+        selectedExerciseName = exerciseLogs.keys.first;
         earliestDate = DateTime.parse(logs.first['date']);
       }
     });
   }
 
   List<FlSpot> _generateData() {
-    if (selectedExerciseId == null || !exerciseLogs.containsKey(selectedExerciseId)) {
+    if (selectedExerciseName == null || !exerciseLogs.containsKey(selectedExerciseName)) {
       return [];
     }
 
     List<FlSpot> dataPoints = [];
-    var logsForExercise = exerciseLogs[selectedExerciseId]!;
+    var logsForExercise = exerciseLogs[selectedExerciseName]!;
     for (var log in logsForExercise) {
       DateTime date = DateTime.parse(log['date']);
       double dayNumber = date.difference(earliestDate!).inDays.toDouble() + 1;
@@ -70,11 +70,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   double _getMaxWeight() {
-    if (selectedExerciseId == null || !exerciseLogs.containsKey(selectedExerciseId)) {
+    if (selectedExerciseName == null || !exerciseLogs.containsKey(selectedExerciseName)) {
       return 0;
     }
 
-    var logsForExercise = exerciseLogs[selectedExerciseId]!;
+    var logsForExercise = exerciseLogs[selectedExerciseName]!;
     double maxWeight = logsForExercise
         .map((log) => log['weight'] * (1 + (log['reps'] / 30)))
         .reduce((a, b) => a > b ? a : b);
@@ -167,18 +167,18 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     SizedBox(height: 10),
-                    DropdownButton<int>(
-                      value: selectedExerciseId,
+                    DropdownButton<String>(
+                      value: selectedExerciseName,
                       dropdownColor: Colors.white,
-                      onChanged: (newId) {
+                      onChanged: (newName) {
                         setState(() {
-                          selectedExerciseId = newId;
+                          selectedExerciseName = newName;
                         });
                       },
-                      items: exerciseLogs.keys.map((exerciseId) {
-                        return DropdownMenuItem<int>(
-                          value: exerciseId,
-                          child: Text('Exercise $exerciseId'),
+                      items: exerciseLogs.keys.map((exerciseName) {
+                        return DropdownMenuItem<String>(
+                          value: exerciseName,
+                          child: Text(exerciseName),
                         );
                       }).toList(),
                     ),
