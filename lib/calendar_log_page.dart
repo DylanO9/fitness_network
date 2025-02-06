@@ -139,6 +139,7 @@ class _ExerciseTileState extends State<ExerciseTile> {
           .order('date', ascending: false);
 
       return response.map((item) => {
+        'id': item['id'],
         'weight': item['weight'],
         'reps': item['reps'],
         'date': item['date'],
@@ -157,12 +158,27 @@ class _ExerciseTileState extends State<ExerciseTile> {
         'reps': _reps,
         'date': widget.date.toIso8601String(),
         'user_id': Supabase.instance.client.auth.currentUser!.id,
+        'exercise_name': widget.exerciseName,
       });
       setState(() {
         _logs = _fetchLogs();
       });
     } catch (e) {
       print('Error logging weight/reps: $e');
+    }
+  }
+
+  Future<void> _deleteLog(int logId) async {
+    try {
+      await Supabase.instance.client
+          .from('Exercise_Logs')
+          .delete()
+          .eq('id', logId);
+      setState(() {
+        _logs = _fetchLogs();
+      });
+    } catch (e) {
+      print('Error deleting log: $e');
     }
   }
 
@@ -205,36 +221,32 @@ class _ExerciseTileState extends State<ExerciseTile> {
                     }
                     return Column(
                       children: snapshot.data!.map((log) {
-                        return Table(
-                          columnWidths: {
-                          0: FlexColumnWidth(1),
-                          1: FlexColumnWidth(1),
-                          },
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                          TableRow(
-                            children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Text(
-                              'Weight: ${log['weight']} lbs',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Weight: ${log['weight']} lbs',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Text(
+                                  'Reps: ${log['reps']}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Text(
-                              'Reps: ${log['reps']}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[700],
-                              ),
-                              ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteLog(log['id']),
                             ),
-                            ],
-                          ),
                           ],
                         );
                       }).toList(),
@@ -244,47 +256,47 @@ class _ExerciseTileState extends State<ExerciseTile> {
                 SizedBox(height: 10),
                 Row(
                   children: [
-                  Expanded(
-                    child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Weight (lbs)',
-                      labelStyle: TextStyle(color: Colors.black),
-                      border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      _weight = int.tryParse(value) ?? 0;
-                    },
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Reps',
-                      labelStyle: TextStyle(color: Colors.black),
-                      border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black),
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: 'Weight (lbs)',
+                          labelStyle: TextStyle(color: Colors.black),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.black),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.black),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          _weight = int.tryParse(value) ?? 0;
+                        },
                       ),
                     ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      _reps = int.tryParse(value) ?? 0;
-                    },
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: 'Reps',
+                          labelStyle: TextStyle(color: Colors.black),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.black),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.black),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          _reps = int.tryParse(value) ?? 0;
+                        },
+                      ),
                     ),
-                  ),
                   ],
                 ),
                 SizedBox(height: 10),

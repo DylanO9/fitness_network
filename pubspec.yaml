@@ -38,6 +38,7 @@ dependencies:
   path_provider: ^2.1.5
   http: ^1.2.2
   syncfusion_flutter_calendar: ^28.2.4
+  fl_chart: ^0.70.2
 
 dev_dependencies:
   flutter_test:
