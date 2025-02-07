@@ -12,6 +12,8 @@ Fitness Network is a Flutter-based mobile application designed to help users tra
 - **Settings Page**
 
 ## Project Structure
+
+```
 .
 ├── .dart_tool/
 ├── .flutter-plugins
@@ -26,16 +28,16 @@ Fitness Network is a Flutter-based mobile application designed to help users tra
 ├── fitness_network.iml
 ├── ios/
 ├── lib/
-│ ├── add_exercise_page.dart
-│ ├── calendar_log_page.dart
-│ ├── day_page.dart
-│ ├── exercise_list_page.dart
-│ ├── home_page.dart
-│ ├── login_page.dart
-│ ├── main_page.dart
-│ ├── profile_page.dart
-│ ├── settings_page.dart
-│ └── workouts_page.dart
+│   ├── add_exercise_page.dart
+│   ├── calendar_log_page.dart
+│   ├── day_page.dart
+│   ├── exercise_list_page.dart
+│   ├── home_page.dart
+│   ├── login_page.dart
+│   ├── main_page.dart
+│   ├── profile_page.dart
+│   ├── settings_page.dart
+│   └── workouts_page.dart
 ├── linux/
 ├── macos/
 ├── pubspec.lock
@@ -44,7 +46,7 @@ Fitness Network is a Flutter-based mobile application designed to help users tra
 ├── test/
 ├── web/
 └── windows/
-
+```
 
 ## Getting Started
 
@@ -57,39 +59,57 @@ Fitness Network is a Flutter-based mobile application designed to help users tra
 ### Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/fitness_network.git
+    ```bash
+    git clone https://github.com/yourusername/fitness_network.git
+    ```
 2. Navigate to the project directory:
-   cd fitness_network
+    ```bash
+    cd fitness_network
+    ```
 3. Install dependencies:
-   flutter pub get
+    ```bash
+    flutter pub get
+    ```
 
-Running the App
+### Running the App
+
 Connect a device or start an emulator.
 
 Run the app:
-    flutter run
-Usage
-Authentication
+```bash
+flutter run
+```
+
+## Usage
+
+### Authentication
+
 Users can sign up and log in using their email and password. The authentication is handled by Supabase.
 
-Logging Exercises
+### Logging Exercises
+
 Users can log their exercises, including details like weight, reps, and sets. The logs are stored in Supabase.
 
-Managing Workout Routines
+### Managing Workout Routines
+
 Users can create and manage their workout routines, including adding and removing exercises.
 
-Viewing Workout Logs
+### Viewing Workout Logs
+
 Users can view their workout logs in a calendar view, making it easy to track their progress over time.
 
-Profile Management
+### Profile Management
+
 Users can update their profile information, including display name, email, and fitness details.
 
-Contributing
+## Contributing
+
 Contributions are welcome! Please fork the repository and create a pull request with your changes.
 
-License
+## License
+
 This project is licensed under the MIT License.
 
-Contact
+## Contact
+
 For any questions or feedback, please contact yourname@example.com.
