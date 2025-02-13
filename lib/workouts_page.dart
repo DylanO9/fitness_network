@@ -121,7 +121,7 @@ class _WorkoutsPageState extends State<WorkoutsPage> {
           children: [
             // Calendar Section
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
               child: Card(
                 elevation: 6,
                 shape: RoundedRectangleBorder(
