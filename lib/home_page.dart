@@ -169,22 +169,29 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(height: 10),
                     DropdownButton<String>(
                       value: selectedExerciseName,
-                      dropdownColor: Colors.white,
+                      dropdownColor: Colors.blue[800],
                       onChanged: (newName) {
-                        setState(() {
-                          selectedExerciseName = newName;
-                        });
+                      setState(() {
+                        selectedExerciseName = newName;
+                      });
                       },
                       items: exerciseLogs.keys.map((exerciseName) {
-                        return DropdownMenuItem<String>(
-                          value: exerciseName,
-                          child: Text(exerciseName),
-                        );
+                      return DropdownMenuItem<String>(
+                        value: exerciseName,
+                        child: Text(
+                        exerciseName,
+                        style: TextStyle(color: Colors.white),
+                        ),
+                      );
                       }).toList(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
                     ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                  ),
 
               // Strength Progress Chart
               Padding(
