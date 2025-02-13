@@ -1,33 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'signup_page.dart';
+import 'login_page.dart';
 import 'main_page.dart';
 
-class LoginPage extends StatelessWidget {
+class SignupPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
 
-  Future<void> login(BuildContext context) async {
+  Future<void> signup(BuildContext context) async {
     final supabase = Supabase.instance.client;
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match.')),
+      );
+      return;
+    }
 
     try {
-      final response = await supabase.auth.signInWithPassword(
+      final response = await supabase.auth.signUp(
         email: email,
         password: password,
       );
 
       if (response.session != null) {
-        // Login successful, navigate to MainPage
+        // Signup successful, navigate to MainPage
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MainPage()),
         );
       } else {
-        // Display error if login failed
+        // Display error if signup failed
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed. Please try again.')),
+          const SnackBar(content: Text('Signup failed. Please try again.')),
         );
       }
     } catch (error) {
@@ -76,9 +85,20 @@ class LoginPage extends StatelessWidget {
               ),
             ),
             Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: TextField(
+                controller: confirmPasswordController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Confirm Password',
+                ),
+                obscureText: true,
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
               child: ElevatedButton(
-                onPressed: () => login(context),
+                onPressed: () => signup(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   minimumSize: const Size(double.infinity, 48),
@@ -87,25 +107,10 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  'Log in',
+                  'Sign up',
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: TextButton(
-                onPressed: () {
-                  print('Forgot password');
-                },
-                child: const Text(
-                  'Forgot password?',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.blue,
                   ),
                 ),
               ),
@@ -114,7 +119,7 @@ class LoginPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  "Don't have an account?",
+                  "Already have an account?",
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,
@@ -127,12 +132,12 @@ class LoginPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => SignupPage(),
+                          builder: (context) => LoginPage(),
                         ),
                       );
                     },
                     child: const Text(
-                      'Sign up',
+                      'Log in',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.blue,

@@ -44,17 +44,22 @@ class _HomePageState extends State<HomePage> {
       }
       grouped[exerciseName]!.add(log);
     }
-    setState(() {  
+    setState(() {
       exerciseLogs = grouped;
       if (exerciseLogs.isNotEmpty) {
         selectedExerciseName = exerciseLogs.keys.first;
         earliestDate = DateTime.parse(logs.first['date']);
+      } else {
+        selectedExerciseName = null;
+        earliestDate = null;
       }
     });
   }
 
   List<FlSpot> _generateData() {
-    if (selectedExerciseName == null || !exerciseLogs.containsKey(selectedExerciseName)) {
+    if (selectedExerciseName == null ||
+        !exerciseLogs.containsKey(selectedExerciseName) ||
+        earliestDate == null) {
       return [];
     }
 
@@ -70,11 +75,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   double _getMaxWeight() {
-    if (selectedExerciseName == null || !exerciseLogs.containsKey(selectedExerciseName)) {
+    if (selectedExerciseName == null ||
+        !exerciseLogs.containsKey(selectedExerciseName)) {
       return 0;
     }
 
     var logsForExercise = exerciseLogs[selectedExerciseName]!;
+    if (logsForExercise.isEmpty) {
+      return 0;
+    }
+
     double maxWeight = logsForExercise
         .map((log) => log['weight'] * (1 + (log['reps'] / 30)))
         .reduce((a, b) => a > b ? a : b);
@@ -82,12 +92,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   String _formatDate(double value) {
+    if (earliestDate == null) {
+      return '';
+    }
     DateTime date = earliestDate!.add(Duration(days: value.toInt() - 1));
     return DateFormat('MM/dd').format(date);
   }
 
   @override
   Widget build(BuildContext context) {
+    List<FlSpot> dataPoints = _generateData();
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -171,27 +186,27 @@ class _HomePageState extends State<HomePage> {
                       value: selectedExerciseName,
                       dropdownColor: Colors.blue[800],
                       onChanged: (newName) {
-                      setState(() {
-                        selectedExerciseName = newName;
-                      });
+                        setState(() {
+                          selectedExerciseName = newName;
+                        });
                       },
                       items: exerciseLogs.keys.map((exerciseName) {
-                      return DropdownMenuItem<String>(
-                        value: exerciseName,
-                        child: Text(
-                        exerciseName,
-                        style: TextStyle(color: Colors.white),
-                        ),
-                      );
+                        return DropdownMenuItem<String>(
+                          value: exerciseName,
+                          child: Text(
+                            exerciseName,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
                       }).toList(),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                       ),
                     ),
-                    ],
-                  ),
-                  ),
+                  ],
+                ),
+              ),
 
               // Strength Progress Chart
               Padding(
@@ -217,57 +232,69 @@ class _HomePageState extends State<HomePage> {
                         padding: EdgeInsets.all(15),
                         child: SizedBox(
                           height: 250,
-                          child: LineChart(
-                            LineChartData(
-                              minY: 0,
-                              maxY: _getMaxWeight() + 10, // Add a buffer to the max weight for better spacing
-                              titlesData: FlTitlesData(
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text(
-                                        _formatDate(value),
-                                        style: TextStyle(fontSize: 10),
-                                      );
-                                    },
-                                    interval: 8, // Adjusts interval for readability
+                          child: dataPoints.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'No data logged',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                )
+                              : LineChart(
+                                  LineChartData(
+                                    minY: 0,
+                                    maxY: _getMaxWeight() + 10, // Add a buffer to the max weight for better spacing
+                                    titlesData: FlTitlesData(
+                                      bottomTitles: AxisTitles(
+                                        sideTitles: SideTitles(
+                                          showTitles: true,
+                                          getTitlesWidget: (value, meta) {
+                                            return Text(
+                                              _formatDate(value),
+                                              style: TextStyle(fontSize: 10),
+                                            );
+                                          },
+                                          interval: 8, // Adjusts interval for readability
+                                        ),
+                                      ),
+                                      leftTitles: AxisTitles(
+                                        sideTitles: SideTitles(
+                                          showTitles: true,
+                                          getTitlesWidget: (value, meta) {
+                                            return Text(
+                                              value.toStringAsFixed(0), // Show whole numbers only
+                                              style: TextStyle(fontSize: 12),
+                                            );
+                                          },
+                                          reservedSize: 40, // Prevents label stacking
+                                          interval: (_getMaxWeight() / 4).clamp(10, 50), // Dynamic interval
+                                        ),
+                                      ),
+                                      topTitles: AxisTitles(
+                                        sideTitles: SideTitles(
+                                          showTitles: false, // Hide duplicate top labels
+                                        ),
+                                      ),
+                                      rightTitles: AxisTitles(
+                                        sideTitles: SideTitles(showTitles: false),
+                                      ),
+                                    ),
+                                    borderData: FlBorderData(show: false),
+                                    lineBarsData: [
+                                      LineChartBarData(
+                                        spots: dataPoints,
+                                        isCurved: true,
+                                        barWidth: 4,
+                                        belowBarData: BarAreaData(show: false),
+                                        color: Colors.blue,
+                                      ),
+                                    ],
+                                    gridData: FlGridData(show: true),
+                                    lineTouchData: LineTouchData(enabled: false),
                                   ),
                                 ),
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text(
-                                        value.toStringAsFixed(0), // Show whole numbers only
-                                        style: TextStyle(fontSize: 12),
-                                      );
-                                    },
-                                    reservedSize: 40, // Prevents label stacking
-                                    interval: (_getMaxWeight() / 4).clamp(10, 50), // Dynamic interval
-                                  ),
-                                ),
-                                topTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: false, // Hide duplicate top labels
-                                  ),
-                                ),
-                                rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                              ),
-                              borderData: FlBorderData(show: false),
-                              lineBarsData: [
-                                LineChartBarData(
-                                  spots: _generateData(),
-                                  isCurved: true,
-                                  barWidth: 4,
-                                  belowBarData: BarAreaData(show: false),
-                                  color: Colors.blue,
-                                ),
-                              ],
-                            )
-                          ),
                         ),
                       ),
                     ),
