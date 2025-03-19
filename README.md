@@ -15,17 +15,17 @@ Fitness Network is a Flutter-based mobile application designed to help users tra
 
 Here are some screenshots of the app:
 
-| Home Page | Calendar View | Workout Routine |
+| Home Page | Calendar View | Daily Workout Page |
 |-----------|---------------|-----------------|
-| ![Home Page](./screenshots/iphone_1.png) | ![Calendar View](./screenshots/iphone_2.png) | ![Workout Routine](./screenshots/iphone_3.png) |
+| ![Home Page](./screenshots/iphone_1.png) | ![Calendar View](./screenshots/iphone_2.png) | ![Daily Workout Page](./screenshots/iphone_3.png) |
 
-| Exercise Logging | Profile Page | Settings Page |
+| Exercise Logging | Exercise Explore | Reps/Sets Logging |
 |------------------|--------------|---------------|
-| ![Exercise Logging](./screenshots/iphone_4.png) | ![Profile Page](./screenshots/iphone_5.png) | ![Settings Page](./screenshots/iphone_6.png) |
+| ![Exercise Logging](./screenshots/iphone_4.png) | ![Exercise Explore](./screenshots/iphone_5.png) | ![Reps/Sets Logging](./screenshots/iphone_6.png) |
 
-| Login Page |
+| Profile Page |
 |------------|
-| ![Login Page](./screenshots/iphone_7.png) |
+| ![Profile Page](./screenshots/iphone_7.png) |
 
 ## Project File Structure
 
