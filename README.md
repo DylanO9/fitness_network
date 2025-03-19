@@ -17,51 +17,50 @@ Here are some screenshots of the app:
 
 | Home Page | Calendar View | Workout Routine |
 |-----------|---------------|-----------------|
-| ![Home Page](iphone_1.png) | ![Calendar View](iphone_2.png) | ![Workout Routine](iphone_3.png) |
+| ![Home Page](./screenshots/iphone_1.png) | ![Calendar View](./screenshots/iphone_2.png) | ![Workout Routine](./screenshots/iphone_3.png) |
 
 | Exercise Logging | Profile Page | Settings Page |
 |------------------|--------------|---------------|
-| ![Exercise Logging](iphone_4.png) | ![Profile Page](iphone_5.png) | ![Settings Page](iphone_6.png) |
+| ![Exercise Logging](./screenshots/iphone_4.png) | ![Profile Page](./screenshots/iphone_5.png) | ![Settings Page](./screenshots/iphone_6.png) |
 
 | Login Page |
 |------------|
-| ![Login Page](iphone_7.png) |
+| ![Login Page](./screenshots/iphone_7.png) |
 
-## Project Structure
+## Project File Structure
+
+Below is the file structure of the project:
 
 ```
-.
-├── .dart_tool/
-├── .flutter-plugins
-├── .flutter-plugins-dependencies
-├── .gitignore
-├── .idea/
-├── .metadata
-├── .vscode/
-├── analysis_options.yaml
-├── android/
-├── build/
-├── fitness_network.iml
-├── ios/
+fitness_network/
 ├── lib/
-│   ├── add_exercise_page.dart
-│   ├── calendar_log_page.dart
-│   ├── day_page.dart
-│   ├── exercise_list_page.dart
-│   ├── home_page.dart
-│   ├── login_page.dart
-│   ├── main_page.dart
-│   ├── profile_page.dart
-│   ├── settings_page.dart
-│   └── workouts_page.dart
-├── linux/
-├── macos/
-├── pubspec.lock
+│   ├── main.dart
+│   ├── screens/
+│   │   ├── home_screen.dart
+│   │   ├── login_screen.dart
+│   │   ├── profile_screen.dart
+│   │   ├── settings_screen.dart
+│   │   └── workout_screen.dart
+│   ├── widgets/
+│   │   ├── custom_button.dart
+│   │   ├── exercise_card.dart
+│   │   └── workout_list.dart
+│   └── services/
+│       ├── auth_service.dart
+│       └── database_service.dart
+├── assets/
+│   ├── images/
+│   └── fonts/
 ├── pubspec.yaml
 ├── README.md
-├── test/
-├── web/
-└── windows/
+└── screenshots/
+    ├── iphone_1.png
+    ├── iphone_2.png
+    ├── iphone_3.png
+    ├── iphone_4.png
+    ├── iphone_5.png
+    ├── iphone_6.png
+    └── iphone_7.png
 ```
 
 ## Getting Started
